@@ -52,16 +52,26 @@ try:
 except URLError as e:
   streamlit.error()
 
+# Snowflakeからのデータを表示する一覧
+# 一覧のタイトルを表示
+streamlit.header("The fruit load list contains:")
+
+# get_fruit_load_list関数を定義
+def get_fruit_load_list():
+  with my_cnx.cursor() as my_cur:
+    my_cur.execute("select * from fruit_load_list")
+    return my_cur.fetchall()
+
+# フルーツをロードするボタンを追加
+if streamlit.button('Get Fruit Load List'):
+  # Snowflakeと接続
+  my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+  # 関数を呼び出してSQLを送信
+  my_data_rows = get_fruit_load_list()
+  streamlit.dataframe(my_data_rows)
+  
 # 以下の処理を無効にする
 streamlit.stop()
-
-# snowflakeからデータを表示
-my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
-my_cur = my_cnx.cursor()
-my_cur.execute("select * from fruit_load_list")
-my_data_rows = my_cur.fetchall()
-streamlit.header("The fruit load list contains:")
-streamlit.dataframe(my_data_rows)
 # リストからフルーツを加えられるようにテキストボックスを作成
 add_my_fruit = streamlit.text_input('What fruit would you like to add?','jackfruit')
 streamlit.write('Thanks for adding', add_my_fruit)
