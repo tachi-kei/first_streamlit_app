@@ -52,11 +52,13 @@ try:
 except URLError as e:
   streamlit.error()
 
+
 # Snowflakeからのデータを表示する一覧
 # 一覧のタイトルを表示
 streamlit.header("The fruit load list contains:")
 
 # get_fruit_load_list関数を定義
+# SQLを送信する
 def get_fruit_load_list():
   with my_cnx.cursor() as my_cur:
     my_cur.execute("select * from fruit_load_list")
@@ -66,15 +68,24 @@ def get_fruit_load_list():
 if streamlit.button('Get Fruit Load List'):
   # Snowflakeと接続
   my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
-  # 関数を呼び出してSQLを送信
+  # 関数を呼び出してレスポンスの一覧を表示
   my_data_rows = get_fruit_load_list()
   streamlit.dataframe(my_data_rows)
-  
+
+# 入力されたフルーツを一覧に追加する機能
+# insert_row_snowflake関数を定義
+def insert_row_snowflake(new_fruit):
+  with my_cnx.cursor() as my_cur:
+    my_cur.execute("insert into fruit_load_list values ('from streamlit')")
+    return "Thanks for adding" + new_fruit
+
+# 追加したいフルーツを入力するテキストボックス
+add_my_fruit = streamlit.text_input('What fruit would you like to add?')
+if streamlit.button('Add a Fruit to the List'):
+  my_cnx = snowflake.connector.connect(**streamlit.secrets["snowflake"])
+  back_from_function = insert_row_snowflake(add_my_fruit)
+  streamlit.text(back_from_function)
+
 # 以下の処理を無効にする
 streamlit.stop()
-# リストからフルーツを加えられるようにテキストボックスを作成
-add_my_fruit = streamlit.text_input('What fruit would you like to add?','jackfruit')
-streamlit.write('Thanks for adding', add_my_fruit)
 
-#正しく動かない
-my_cur.execute("insert into fruit_load_list values ('from streamlit')")
